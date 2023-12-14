@@ -1,0 +1,119 @@
+import matplotlib.pyplot as plt
+from numpy.linalg import eig
+import numpy as np
+import csv
+from mpl_toolkits import mplot3d
+
+n = 1 #No of hexagon in the row
+m = 1 #No of rows
+c0 = 1 # interlayer distance
+s = 2*(n+1)*(m+1) # Total no of sites
+print(s)
+
+# Hamiltonian matrix 
+S = 2*s
+H = np.zeros([S, S], dtype= int)
+t = 1 # Hopping amplitude
+
+indexlist = []
+xindex = []
+yindex = []
+
+#defining the elements of the marix
+#intralayer
+for i in range(1,S,1):
+     indexlist.append(i)
+     if i<=s :
+                xindex.append(1)
+                yindex.append(i)
+     else:
+                xindex.append(2)
+                yindex.append(i-s)
+
+#horizontal bonds
+     if i <S:             
+          if xindex[i-1]==1:           #1st layer
+               if i%(2*n+2)!=0:
+                H[i][i-1]=t
+                H[i-1][i]=t                
+          elif i%(2*n+2)!=0:           #2nd layer
+               H[i][i-1]=t
+               H[i-1][i]=t
+               
+for i in range (len(yindex)):                        #getting interlayer bonds
+     for j in range (len(yindex)):
+          if yindex[i]==yindex[j] and i!=j and i<j:
+               H[i][j]=t
+               H[j][i]=t
+               
+
+#vertical bonds
+    
+i=1                             #1st layer
+j=0
+while i<2*(n+1)*(m+1)-2*n-1: 
+     if i%2!=0:
+      #     print(i,i+2*n+2)
+          H[i-1][i+2*n+2-1]=t
+          H[i+2*n+2-1][i-1]=t
+          j=j+1
+          if j==n+1:
+               j=0
+               i=i+3
+          else:
+               i=i+2
+     else:
+      #  print(i,i+2*n+2)
+               H[i-1][i+2*n+2-1]=t
+               H[i+2*n+2-1][i-1]=t
+               j=j+1
+               if j==n+1:
+                    j=0
+                    i=i+1
+               else:
+                    i=i+2               
+          
+i=2*(n+1)*(m+1)+1                 #2nd layer
+j=0
+while 2*(n+1)*(m+1)< i <2*2*(n+1)*(m+1)-2*n-1:  
+     if i%2!=0:
+       # print(i,i+2*n+2)
+          H[i-1][i+2*n+2-1]=t
+          H[i+2*n+2-1][i-1]=t
+          j=j+1
+          if j==n+1:
+               j=0
+               i=i+3
+          else:
+                    i=i+2
+     else:
+     #   print(i,i+2*n+2)
+          H[i-1][i+2*n+2-1]=t
+          H[i+2*n+2-1][i-1]=t
+          j=j+1
+          if j==n+1:
+               j=0
+               i=i+1
+          else:
+               i=i+2     
+                            
+print(H)
+
+w,v = np.linalg.eig(H)
+z = (np.array([w]))
+z= np.sort(z)
+    
+
+with open('AA.csv', 'w', encoding='UTF8', newline='') as f:
+    writer = csv.writer(f)
+    writer.writerows(H)
+with open('AAeigen.csv', 'w', encoding='UTF8', newline='') as f:
+    writer = csv.writer(f)
+    writer.writerow(z)
+    
+
+plt.hist(w,bins = 100)
+plt.xlabel('Energy Eigenvalue')
+plt.ylabel('DOS')
+plt.title("Density Of states for AA Bilayer Graphene")
+plt.show()
